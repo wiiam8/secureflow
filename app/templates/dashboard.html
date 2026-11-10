@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Projects{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Projects</h1>
+  {% if perm.can_create_project(user) %}<a href="/projects/new" class="btn btn-dark">New project</a>{% endif %}
+</div>
+{% if not cards %}
+<div class="card"><div class="card-body text-center py-5 muted">
+  No project yet.{% if perm.can_create_project(user) %} Create one, then generate an integration token to connect your pipeline.{% else %} Ask an administrator to add you to a project.{% endif %}
+</div></div>
+{% endif %}
+<div class="row g-3">
+{% for c in cards %}
+  <div class="col-md-6 col-xl-4"><div class="card h-100"><div class="card-body">
+    <div class="d-flex justify-content-between align-items-start">
+      <a class="h5 text-decoration-none" href="/projects/{{ c.project.id }}">{{ c.project.name }}</a>
+      {{ m.decision(c.last.decision.result if c.last and c.last.decision else None) }}
+    </div>
+    <div class="muted small mb-3">{% if c.last %}Last run {{ c.last.received_at|dt }} · <span class="mono">{{ c.last.commit_sha[:8] }}</span> on {{ c.last.branch }}{% else %}No pipeline run received yet{% endif %}</div>
+    <div class="d-flex gap-3">
+      <div><div class="stat">{{ c.ov.open_total }}</div><div class="stat-label">open</div></div>
+      <div><div class="stat">{{ c.ov.by_severity['Critical'] + c.ov.by_severity['High'] }}</div><div class="stat-label">crit + high</div></div>
+      <div><div class="stat {{ 'overdue' if c.ov.overdue }}">{{ c.ov.overdue }}</div><div class="stat-label">overdue SLA</div></div>
+    </div>
+  </div></div></div>
+{% endfor %}
+</div>
+{% endblock %}

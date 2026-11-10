@@ -1,0 +1,31 @@
+{% macro decision(result) %}<span class="badge badge-decision d-{{ result or 'NONE' }}">{{ result or 'NO RUN' }}</span>{% endmacro %}
+{% macro sev(s) %}<span class="sev sev-{{ s }}">{{ s }}</span>{% endmacro %}
+{% macro project_nav(project, active, user) %}
+<div class="d-flex align-items-baseline justify-content-between flex-wrap mb-3">
+  <div>
+    <h2 class="h3 mb-0">{{ project.name }}</h2>
+    <div class="muted small">{{ project.repo_url or 'No repository URL' }} · default branch <span class="mono">{{ project.default_branch }}</span></div>
+  </div>
+</div>
+<ul class="nav nav-tabs mb-4">
+  {% for key, label, url in [('overview','Overview','/projects/%d'|format(project.id)),
+      ('runs','Pipeline runs','/projects/%d/runs'|format(project.id)),
+      ('findings','Findings','/projects/%d/findings'|format(project.id)),
+      ('controls','Controls (GRC)','/projects/%d/controls'|format(project.id)),
+      ('settings','Settings','/projects/%d/settings'|format(project.id))] %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if active == key }}" href="{{ url }}">{{ label }}</a></li>
+  {% endfor %}
+  {% if user.role in ('admin','security') %}
+  <li class="nav-item"><a class="nav-link {{ 'active' if active == 'audit' }}" href="/projects/{{ project.id }}/audit">Audit trail</a></li>
+  {% endif %}
+</ul>
+{% endmacro %}
+{% macro pager(base, page, pages) %}
+{% if pages > 1 %}
+<nav><ul class="pagination pagination-sm">
+  <li class="page-item {{ 'disabled' if page <= 1 }}"><a class="page-link" href="{{ base }}{{ page - 1 }}">&laquo;</a></li>
+  <li class="page-item disabled"><span class="page-link">{{ page }} / {{ pages }}</span></li>
+  <li class="page-item {{ 'disabled' if page >= pages }}"><a class="page-link" href="{{ base }}{{ page + 1 }}">&raquo;</a></li>
+</ul></nav>
+{% endif %}
+{% endmacro %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Findings · {{ project.name }}{% endblock %}
+{% block content %}
+{{ m.project_nav(project, 'findings', user) }}
+<form class="row g-2 mb-3" method="get">
+  <div class="col-auto"><select name="scope" class="form-select form-select-sm">
+    <option value="current" {{ 'selected' if f.scope == 'current' }}>Present in latest scan</option>
+    <option value="all" {{ 'selected' if f.scope == 'all' }}>Include resolved</option></select></div>
+  <div class="col-auto"><select name="severity" class="form-select form-select-sm"><option value="">Any severity</option>
+    {% for s in SEVERITIES %}<option {{ 'selected' if f.severity == s }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-auto"><select name="status" class="form-select form-select-sm"><option value="">Any status</option>
+    {% for s in STATUSES %}<option {{ 'selected' if f.status == s }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-auto"><select name="category" class="form-select form-select-sm"><option value="">Any category</option>
+    {% for s in CATEGORIES %}<option {{ 'selected' if f.category == s }}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-auto"><select name="branch" class="form-select form-select-sm"><option value="">Any branch</option>
+    {% for b in branches %}<option {{ 'selected' if f.branch == b }}>{{ b }}</option>{% endfor %}</select></div>
+  <div class="col-auto"><button class="btn btn-sm btn-dark">Filter</button></div>
+  <div class="col-auto ms-auto muted small align-self-center">{{ total }} finding(s)</div>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0">
+  <thead><tr><th>Severity</th><th>Finding</th><th>Scanner</th><th>Location</th><th>Branch</th><th>Status</th><th>SLA</th><th>First seen</th></tr></thead><tbody>
+  {% for x in findings %}{% set s = sla[x.id] %}<tr>
+    <td>{{ m.sev(x.severity) }}</td><td><a href="/findings/{{ x.id }}">{{ x.title }}</a></td><td>{{ x.scanner }}</td>
+    <td class="mono">{{ x.location }}</td><td>{{ x.branch }}</td><td>{{ x.status }}</td>
+    <td>{% if s %}{% if s.overdue %}<span class="overdue">{{ -s.days_left }}d late</span>{% else %}{{ s.days_left }}d left{% endif %}{% else %}<span class="muted">-</span>{% endif %}</td>
+    <td>{{ x.first_seen|dt }}</td></tr>
+  {% else %}<tr><td colspan="8" class="text-center muted py-4">No finding matches.</td></tr>{% endfor %}
+</tbody></table></div></div>
+<div class="mt-3">{{ m.pager('/projects/%d/findings?scope=%s&severity=%s&status=%s&category=%s&branch=%s&page='|format(project.id, f.scope, f.severity, f.status, f.category, f.branch), page, pages) }}</div>
+{% endblock %}

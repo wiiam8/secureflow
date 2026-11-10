@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Runs · {{ project.name }}{% endblock %}
+{% block content %}
+{{ m.project_nav(project, 'runs', user) }}
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0">
+  <thead><tr><th>Run</th><th>Decision</th><th>Policy</th><th>Commit</th><th>Branch</th><th>Event</th><th>Total</th><th>New</th><th>Resolved</th><th>Received</th></tr></thead>
+  <tbody>
+  {% for r in runs %}{% set s = r.decision.summary if r.decision else {} %}<tr>
+    <td><a href="/runs/{{ r.id }}">#{{ r.id }}</a></td><td>{{ m.decision(r.decision.result if r.decision else None) }}</td>
+    <td>v{{ r.decision.policy_version if r.decision else '-' }}</td><td class="mono">{{ r.commit_sha[:8] }}</td>
+    <td>{{ r.branch }}</td><td>{{ r.event or '-' }}</td><td>{{ s.get('total', '-') }}</td><td>{{ s.get('new', '-') }}</td>
+    <td>{{ s.get('resolved', '-') }}</td><td>{{ r.received_at|dt }}</td></tr>
+  {% else %}<tr><td colspan="10" class="text-center muted py-4">No run yet.</td></tr>{% endfor %}
+  </tbody></table></div></div>
+<div class="mt-3">{{ m.pager('/projects/%d/runs?page='|format(project.id), page, pages) }}</div>
+{% endblock %}

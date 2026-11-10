@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Settings · {{ project.name }}{% endblock %}
+{% block content %}
+{{ m.project_nav(project, 'settings', user) }}
+
+{% if perm.can_manage_tokens(user) %}
+<div class="card mb-4"><div class="card-header">Integration tokens (pipeline → API)</div><div class="card-body">
+  {% if new_token %}
+  <div class="alert alert-warning"><strong>Copy this token now.</strong> It is shown only once and cannot be recovered.
+    <div class="token-box mono mt-2">{{ new_token }}</div>
+    <div class="mt-2 small">Store it as the GitHub secret <span class="mono">SECUREFLOW_TOKEN</span>.</div></div>
+  {% endif %}
+  <form method="post" action="/projects/{{ project.id }}/tokens" class="row g-2 mb-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="col-auto"><input name="label" class="form-control form-control-sm" placeholder="Label (e.g. GitHub Actions)"></div>
+    <div class="col-auto"><button class="btn btn-sm btn-dark">Generate token</button></div>
+  </form>
+  <table class="table table-sm mb-0"><thead><tr><th>Prefix</th><th>Label</th><th>Created</th><th>Last used</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for t in tokens %}<tr><td class="mono">{{ t.prefix }}…</td><td>{{ t.label or '-' }}</td><td>{{ t.created_at|dt }}</td><td>{{ t.last_used_at|dt }}</td>
+    <td>{% if t.active %}<span class="badge text-bg-success">active</span>{% else %}<span class="badge text-bg-secondary">revoked</span>{% endif %}</td>
+    <td>{% if t.active %}<form method="post" action="/projects/{{ project.id }}/tokens/{{ t.id }}/revoke" class="m-0">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="btn btn-sm btn-outline-danger" data-confirm="Revoke this token? Pipelines using it will fail (ERROR).">Revoke</button></form>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="6" class="muted">No token yet.</td></tr>{% endfor %}
+  </tbody></table>
+</div></div>
+{% endif %}
+
+<div class="card mb-4"><div class="card-header">Policy · active version {{ policy.version }}</div><div class="card-body">
+  {% if policy_errors %}<div class="alert alert-danger"><strong>Policy not saved:</strong><ul class="mb-0">{% for e in policy_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+  {% if perm.can_edit_policy(user) %}
+  <form method="post" action="/projects/{{ project.id }}/policy">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <textarea name="policy_json" class="form-control policy-edit mb-2" spellcheck="false">{{ policy_text }}</textarea>
+    <div class="row g-2"><div class="col"><input name="comment" class="form-control form-control-sm" placeholder="Why this change? (kept in the history)" maxlength="300"></div>
+      <div class="col-auto"><button class="btn btn-sm btn-dark">Save as new version</button></div></div>
+  </form>
+  {% else %}<pre class="policy">{{ policy_text }}</pre>{% endif %}
+  <h3 class="h6 mt-4">Version history</h3>
+  <table class="table table-sm mb-0"><tbody>
+  {% for v in versions %}<tr><td>v{{ v.version }}{% if v.is_active %} <span class="badge text-bg-success">active</span>{% endif %}</td><td>{{ v.created_at|dt }}</td><td>{{ v.created_by }}</td><td class="muted">{{ v.comment }}</td></tr>{% endfor %}
+  </tbody></table>
+</div></div>
+
+<div class="card"><div class="card-header">Members</div><div class="card-body">
+  <ul class="list-group mb-3">{% for u in members %}<li class="list-group-item d-flex justify-content-between align-items-center">
+    <span>{{ u.username }} <span class="badge text-bg-secondary">{{ ROLE_LABELS[u.role] }}</span></span>
+    {% if perm.can_manage_members(user) %}<form method="post" action="/projects/{{ project.id }}/members" class="m-0">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="user_id" value="{{ u.id }}"><input type="hidden" name="action" value="remove">
+      <button class="btn btn-sm btn-outline-secondary">Remove</button></form>{% endif %}</li>{% endfor %}</ul>
+  {% if perm.can_manage_members(user) and candidates %}
+  <form method="post" action="/projects/{{ project.id }}/members" class="row g-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="action" value="add">
+    <div class="col-auto"><select name="user_id" class="form-select form-select-sm">{% for u in candidates %}<option value="{{ u.id }}">{{ u.username }}</option>{% endfor %}</select></div>
+    <div class="col-auto"><button class="btn btn-sm btn-dark">Add member</button></div>
+  </form>{% endif %}
+</div></div>
+{% endblock %}

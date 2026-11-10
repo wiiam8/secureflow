@@ -1,0 +1,61 @@
+name: SecureFlow security gate
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Gitleaks scans the git history too
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # ---- scanners run HERE, in CI. SecureFlow's backend never runs a scanner. -------------
+      # `|| true`: scanners exit non-zero when they find issues. The decision belongs to SecureFlow.
+      # A scanner that crashes or writes no file is caught by the CI script (missing report -> ERROR).
+      - name: Bandit (code)
+        run: |
+          pip install --quiet bandit
+          bandit -r app -f json -o bandit.json || true
+
+      - name: Gitleaks (secrets)
+        run: |
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz | tar -xz gitleaks
+          ./gitleaks detect --source . --report-format json --report-path gitleaks.json --redact --exit-code 0
+
+      - name: pip-audit (dependencies)
+        run: |
+          pip install --quiet pip-audit
+          pip-audit -r requirements.txt --no-deps --disable-pip -f json -o pip-audit.json || true
+
+      # Uncomment to enable the two extra scanners once the MVP chain works:
+      # - name: Semgrep (code)
+      #   run: |
+      #     pip install --quiet semgrep
+      #     semgrep scan --config p/python --json --output semgrep.json --metrics=off || true
+      # - name: Build image + Trivy (container)
+      #   run: |
+      #     docker build -t demo-app:ci .
+      #     docker run --rm -v "$PWD:/out" -v /var/run/docker.sock:/var/run/docker.sock \
+      #       aquasec/trivy:0.57.1 image --format json --output /out/trivy.json --scanners vuln demo-app:ci
+
+      - name: SecureFlow decision (fails the pipeline on BLOCK or integration error)
+        env:
+          SECUREFLOW_URL: ${{ secrets.SECUREFLOW_URL }}
+          SECUREFLOW_TOKEN: ${{ secrets.SECUREFLOW_TOKEN }}
+        run: |
+          python scripts/secureflow_ci.py \
+            --report bandit=bandit.json \
+            --report gitleaks=gitleaks.json \
+            --report pip-audit=pip-audit.json
+          # add: --report semgrep=semgrep.json --report trivy=trivy.json

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SecureFlow{% endblock %} · SecureFlow</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Cpath fill=%27%230f5c63%27 d=%27M8 1l7 7-7 7-7-7z%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/vendor/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+{% if user %}
+<nav class="navbar navbar-expand navbar-dark navbar-sf mb-4">
+  <div class="container-xl">
+    <a class="navbar-brand" href="/"><span class="brand-mark">&#9670;</span> SecureFlow</a>
+    <ul class="navbar-nav me-auto">
+      <li class="nav-item"><a class="nav-link" href="/">Projects</a></li>
+      {% if user.role == 'admin' %}<li class="nav-item"><a class="nav-link" href="/admin/users">Users</a></li>{% endif %}
+      <li class="nav-item"><a class="nav-link" href="/docs" target="_blank" rel="noopener">API docs</a></li>
+    </ul>
+    <span class="navbar-text me-3">{{ user.username }} <span class="badge text-bg-secondary">{{ ROLE_LABELS[user.role] }}</span></span>
+    <form method="post" action="/logout" class="m-0">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-sm btn-outline-light">Sign out</button>
+    </form>
+  </div>
+</nav>
+{% endif %}
+<main class="container-xl pb-5">
+  {% for f in flashes %}<div class="alert alert-{{ f.kind }}">{{ f.text }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+<script src="/static/vendor/chart.umd.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

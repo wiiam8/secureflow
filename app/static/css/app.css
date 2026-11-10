@@ -1,0 +1,32 @@
+:root { --sf-ink:#1b2430; --sf-muted:#6b7684; --sf-line:#e3e7ec; --sf-bg:#f5f7fa; --sf-accent:#0f5c63;
+  --sf-pass:#1f7a4d; --sf-warn:#b7791f; --sf-block:#b42318; --sf-error:#5b2a86; }
+body { background:var(--sf-bg); color:var(--sf-ink); font-feature-settings:"tnum"; }
+.navbar-sf { background:var(--sf-ink); }
+.navbar-sf .navbar-brand { font-weight:700; letter-spacing:.02em; }
+.brand-mark { color:#6fd3c2; }
+.card { border:1px solid var(--sf-line); box-shadow:0 1px 2px rgba(16,24,40,.04); }
+.card-header { background:#fff; font-weight:600; }
+.table > :not(caption) > * > * { vertical-align:middle; }
+.table thead th { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--sf-muted); border-bottom-color:var(--sf-line); }
+.badge-decision { font-size:.8rem; padding:.4em .7em; letter-spacing:.04em; }
+.d-PASS { background:var(--sf-pass); } .d-WARN { background:var(--sf-warn); }
+.d-BLOCK { background:var(--sf-block); } .d-ERROR { background:var(--sf-error); } .d-NONE { background:#98a2b3; }
+.sev { font-size:.72rem; font-weight:600; padding:.25em .55em; border-radius:4px; color:#fff; }
+.sev-Critical { background:#7a1b1b; } .sev-High { background:#c4402f; } .sev-Medium { background:#d98a1c; }
+.sev-Low { background:#4f7cac; } .sev-Info { background:#7b8794; }
+.stat { font-size:2rem; font-weight:700; line-height:1; }
+.stat-label { font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; color:var(--sf-muted); }
+.mono { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.85em; }
+.reason { border-left:4px solid var(--sf-line); padding:.5rem .75rem; margin-bottom:.4rem; background:#fff; }
+.reason-blocking { border-left-color:var(--sf-block); } .reason-warning { border-left-color:var(--sf-warn); }
+.reason-integration_error { border-left-color:var(--sf-error); } .reason-excepted { border-left-color:#98a2b3; }
+.reason-scanner_note { border-left-color:var(--sf-warn); } .reason-info { border-left-color:var(--sf-pass); }
+.decision-hero { border-radius:.5rem; color:#fff; padding:1.25rem 1.5rem; }
+.decision-hero h1 { font-size:2rem; margin:0; letter-spacing:.06em; }
+.chart-box { position:relative; height:220px; }
+.token-box { background:#0f1720; color:#9be7c4; padding:.75rem 1rem; border-radius:.4rem; word-break:break-all; }
+pre.policy { background:#0f1720; color:#d6e2ee; padding:1rem; border-radius:.4rem; max-height:420px; overflow:auto; }
+textarea.policy-edit { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.82rem; min-height:380px; }
+.muted { color:var(--sf-muted); }
+.overdue { color:var(--sf-block); font-weight:600; }
+.login-wrap { max-width:400px; margin:9vh auto; }

@@ -1,0 +1,4 @@
+# SecureFlow's own repo: the test fixtures contain the demo's FAKE secret on purpose.
+[allowlist]
+description = "intentional fake secrets used by tests and the demo target"
+paths = ['''tests/fixtures/.*''', '''demo-target/.*''']

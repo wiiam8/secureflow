@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Audit · {{ project.name }}{% endblock %}
+{% block content %}
+{{ m.project_nav(project, 'audit', user) }}
+<div class="card"><div class="table-responsive"><table class="table table-sm mb-0">
+  <thead><tr><th>Time (UTC)</th><th>Actor</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody>
+  {% for e in events %}<tr><td>{{ e.ts|dt }}</td><td class="mono">{{ e.actor }}</td><td>{{ e.action }}</td>
+    <td class="mono">{{ e.entity_type }}{{ ' #' ~ e.entity_id if e.entity_id }}</td><td class="small mono">{{ e.details }}</td></tr>
+  {% else %}<tr><td colspan="5" class="text-center muted py-4">No event.</td></tr>{% endfor %}
+</tbody></table></div></div>
+<div class="mt-3">{{ m.pager('/projects/%d/audit?page='|format(project.id), page, pages) }}</div>
+{% endblock %}

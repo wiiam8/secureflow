@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ project.name }}{% endblock %}
+{% block content %}
+{{ m.project_nav(project, 'overview', user) }}
+<script type="application/json" id="chart-data">{{ chart_json|safe }}</script>
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="stat">{{ ov.open_total }}</div><div class="stat-label">Open findings</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="stat">{{ ov.by_severity['Critical'] + ov.by_severity['High'] }}</div><div class="stat-label">Critical + High</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="stat {{ 'overdue' if ov.overdue }}">{{ ov.overdue }}</div><div class="stat-label">Overdue (SLA)</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="stat">{{ ov.excepted }}</div><div class="stat-label">Active exceptions</div></div></div></div>
+</div>
+<div class="row g-3 mb-3">
+  <div class="col-lg-8"><div class="card"><div class="card-header">Findings per run (bar color = decision)</div>
+    <div class="card-body">{% if ov.trend %}<div class="chart-box"><canvas id="chart-trend"></canvas></div>{% else %}<span class="muted">No run yet.</span>{% endif %}</div></div></div>
+  <div class="col-lg-4"><div class="card"><div class="card-header">Open by severity</div>
+    <div class="card-body">{% if ov.open_total %}<div class="chart-box"><canvas id="chart-severity"></canvas></div>{% else %}<span class="muted">Nothing open.</span>{% endif %}</div></div></div>
+</div>
+<div class="card"><div class="card-header d-flex justify-content-between">Latest runs <a href="/projects/{{ project.id }}/runs" class="small">All runs</a></div>
+<div class="table-responsive"><table class="table mb-0">
+  <thead><tr><th>Run</th><th>Decision</th><th>Commit</th><th>Branch</th><th>Findings</th><th>Received</th></tr></thead>
+  <tbody>
+  {% for r in runs %}<tr>
+    <td><a href="/runs/{{ r.id }}">#{{ r.id }}</a></td><td>{{ m.decision(r.decision.result if r.decision else None) }}</td>
+    <td class="mono">{{ r.commit_sha[:8] }}</td><td>{{ r.branch }}</td>
+    <td>{{ r.decision.summary.get('total', 0) if r.decision else '-' }}</td><td>{{ r.received_at|dt }}</td></tr>
+  {% else %}<tr><td colspan="6" class="text-center muted py-4">No run received yet. Connect the pipeline using a token from the Settings tab.</td></tr>
+  {% endfor %}
+  </tbody></table></div></div>
+{% endblock %}

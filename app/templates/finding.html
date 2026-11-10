@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}{{ finding.title }}{% endblock %}
+{% block content %}
+<nav class="small mb-2"><a href="/projects/{{ project.id }}">{{ project.name }}</a> / <a href="/projects/{{ project.id }}/findings">Findings</a> / #{{ finding.id }}</nav>
+<div class="d-flex align-items-center gap-2 mb-1">{{ m.sev(finding.severity) }}<h1 class="h4 mb-0">{{ finding.title }}</h1></div>
+<div class="muted mb-3">{{ finding.scanner }} · {{ finding.category }} · {{ finding.rule_id }} · branch {{ finding.branch }}</div>
+<div class="row g-3">
+ <div class="col-lg-7">
+  <div class="card mb-3"><div class="card-header">Details</div><div class="card-body">
+    <p>{{ finding.description }}</p>
+    <dl class="row mb-0 small">
+      <dt class="col-sm-3">Location</dt><dd class="col-sm-9 mono">{{ finding.location }}</dd>
+      {% if finding.component %}<dt class="col-sm-3">Component</dt><dd class="col-sm-9 mono">{{ finding.component }}</dd>{% endif %}
+      {% if finding.fixed_version %}<dt class="col-sm-3">Fixed in</dt><dd class="col-sm-9 mono">{{ finding.fixed_version }}</dd>{% endif %}
+      {% if finding.cwe %}<dt class="col-sm-3">CWE</dt><dd class="col-sm-9">{{ finding.cwe }}</dd>{% endif %}
+      {% if finding.reference %}<dt class="col-sm-3">Reference</dt><dd class="col-sm-9 mono">{{ finding.reference }}</dd>{% endif %}
+      {% if finding.confidence %}<dt class="col-sm-3">Confidence</dt><dd class="col-sm-9">{{ finding.confidence }}</dd>{% endif %}
+      <dt class="col-sm-3">First seen</dt><dd class="col-sm-9">{{ finding.first_seen|dt }}</dd>
+      <dt class="col-sm-3">Last seen</dt><dd class="col-sm-9">{{ finding.last_seen|dt }} · seen {{ finding.seen_count }}x{% if finding.reappeared_count %} · reappeared {{ finding.reappeared_count }}x{% endif %}</dd>
+      {% if sla %}<dt class="col-sm-3">SLA</dt><dd class="col-sm-9">Due {{ sla.due }} {% if sla.overdue %}<span class="overdue">({{ -sla.days_left }} days overdue)</span>{% else %}({{ sla.days_left }} days left){% endif %}</dd>{% endif %}
+    </dl></div></div>
+  {% if rf %}<div class="card mb-3"><div class="card-header">Risk score: {{ rf.risk_score }}</div><div class="card-body small">
+    <div class="mono mb-2">R = S × C × E = {{ rf.factors.S }} × {{ rf.factors.C }} × {{ rf.factors.E }}</div>
+    <ul class="mb-0">
+      <li><strong>S = {{ rf.factors.S }}</strong>: severity {{ rf.factors.S_label }}</li>
+      <li><strong>C = {{ rf.factors.C }}</strong>: {{ rf.factors.C_note }}</li>
+      <li><strong>E = {{ rf.factors.E }}</strong>: {% for p in rf.factors.E_parts %}{{ p.name }} (×{{ p.value }}){{ ', ' if not loop.last }}{% endfor %}</li>
+    </ul>
+    <div class="muted mt-2">Internal ranking score, not a CVSS recalculation. Neutral factor = 1.0 when information is missing.</div></div></div>{% endif %}
+  <div class="card"><div class="card-header">Related controls</div><div class="card-body small">
+    {% for c in controls %}<div><span class="mono">{{ c.id }}</span> · {{ c.framework }} · {{ c.title }}</div>{% endfor %}</div></div>
+ </div>
+ <div class="col-lg-5">
+  <div class="card mb-3"><div class="card-header">Status: <strong>{{ finding.status }}</strong></div><div class="card-body">
+    {% if finding.status_reason %}<p class="small">{{ finding.status_reason }}<br><span class="muted">{{ finding.status_by }} · {{ finding.status_at|dt }}</span></p>{% endif %}
+    {% if finding.status == 'Accepted' %}<p class="small">Exception valid until <strong>{{ finding.accepted_until }}</strong>. After that it blocks again.</p>{% endif %}
+    {% if finding.status == 'Resolved' %}<p class="small muted">Resolved automatically: no longer detected.</p>
+    {% else %}
+    <form method="post" action="/findings/{{ finding.id }}/status">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="mb-2"><label class="form-label small">Set status</label>
+        <select name="status" id="status-select" class="form-select form-select-sm">
+          <option>Open</option><option>In Review</option>
+          {% if user.role in ('admin','security') and finding.category not in policy.exceptions.forbidden_categories and policy.exceptions.allowed %}<option>Accepted</option>{% endif %}
+        </select></div>
+      <div id="accept-fields" class="d-none">
+        <div class="mb-2"><label class="form-label small">Expires on (max {{ policy.exceptions.max_days }} days)</label><input type="date" name="accepted_until" class="form-control form-control-sm"></div>
+      </div>
+      <div class="mb-2"><label class="form-label small">Justification</label><textarea name="reason" class="form-control form-control-sm" rows="3" placeholder="Required to accept a risk (min. 10 characters)"></textarea></div>
+      <button class="btn btn-sm btn-dark">Update</button>
+      {% if finding.category in policy.exceptions.forbidden_categories %}<div class="muted small mt-2">{{ finding.category|capitalize }} findings cannot be accepted: remediate (rotate/fix) instead.</div>{% endif %}
+    </form>{% endif %}
+  </div></div>
+  <div class="card"><div class="card-header">History</div><ul class="list-group list-group-flush small">
+    {% for e in history %}<li class="list-group-item">{{ e.ts|dt }} · {{ e.actor }}<br>{{ e.details.get('from','') }} → <strong>{{ e.details.get('to','') }}</strong>{% if e.details.get('reason') %}<br><span class="muted">{{ e.details.reason }}</span>{% endif %}</li>
+    {% else %}<li class="list-group-item muted">No manual change.</li>{% endfor %}</ul></div>
+ </div>
+</div>
+{% endblock %}

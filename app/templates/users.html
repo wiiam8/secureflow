@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Users</h1>
+<div class="row g-3">
+<div class="col-lg-8"><div class="card"><table class="table mb-0">
+  <thead><tr><th>Username</th><th>E-mail</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>
+  {% for u in users %}<tr><td>{{ u.username }}</td><td>{{ u.email }}</td><td>{{ ROLE_LABELS[u.role] }}</td>
+    <td>{% if u.is_active %}<span class="badge text-bg-success">active</span>{% else %}<span class="badge text-bg-secondary">disabled</span>{% endif %}</td>
+    <td>{% if u.id != user.id %}<form method="post" action="/admin/users/{{ u.id }}/toggle" class="m-0"><input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="btn btn-sm btn-outline-secondary">{{ 'Disable' if u.is_active else 'Enable' }}</button></form>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></div>
+<div class="col-lg-4"><div class="card"><div class="card-header">New user</div><div class="card-body">
+<form method="post" action="/admin/users">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="mb-2"><input name="username" class="form-control form-control-sm" placeholder="Username" required></div>
+  <div class="mb-2"><input name="email" type="email" class="form-control form-control-sm" placeholder="E-mail" required></div>
+  <div class="mb-2"><input name="password" type="password" class="form-control form-control-sm" placeholder="Password (12+ chars)" required autocomplete="new-password"></div>
+  <div class="mb-3"><select name="role" class="form-select form-select-sm">{% for r in roles %}<option value="{{ r }}">{{ ROLE_LABELS[r] }}</option>{% endfor %}</select></div>
+  <button class="btn btn-sm btn-dark">Create</button>
+</form></div></div>
+<p class="muted small mt-3">Administrators and security officers see every project. Developers only see projects they are a member of (Settings tab) and cannot accept risks.</p></div>
+</div>
+{% endblock %}

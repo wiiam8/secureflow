@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}New project{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-6">
+<h1 class="h3 mb-3">New project</h1>
+{% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+<div class="card"><div class="card-body">
+<form method="post" action="/projects/new">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="mb-3"><label class="form-label">Name</label><input name="name" class="form-control" required maxlength="120" value="{{ form.get('name','') }}"></div>
+  <div class="mb-3"><label class="form-label">Repository URL</label><input name="repo_url" class="form-control" placeholder="https://github.com/org/repo" value="{{ form.get('repo_url','') }}"></div>
+  <div class="mb-3"><label class="form-label">Default branch</label><input name="default_branch" class="form-control" value="{{ form.get('default_branch','main') }}"></div>
+  <div class="mb-3"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="3">{{ form.get('description','') }}</textarea></div>
+  <button class="btn btn-dark">Create project</button> <a href="/" class="btn btn-link">Cancel</a>
+</form></div></div></div></div>
+{% endblock %}

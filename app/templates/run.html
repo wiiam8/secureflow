@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+{% block title %}Run #{{ run.id }}{% endblock %}
+{% block content %}
+<nav class="small mb-2"><a href="/projects/{{ project.id }}">{{ project.name }}</a> / <a href="/projects/{{ project.id }}/runs">Runs</a> / #{{ run.id }}</nav>
+{% set res = dec.result if dec else 'ERROR' %}
+<div class="decision-hero d-{{ res }} mb-4 d-flex justify-content-between align-items-center flex-wrap">
+  <div><div class="small text-uppercase opacity-75">Decision</div><h1>{{ res }}</h1>
+    <div class="small">{% if res == 'ERROR' %}Integration error: fail-closed, the pipeline must not proceed.{% elif res == 'BLOCK' %}Delivery blocked by policy.{% elif res == 'WARN' %}Allowed, but needs review.{% else %}No blocking or warning rule triggered.{% endif %}</div></div>
+  <div class="text-end small">
+    <div>Commit <span class="mono">{{ run.commit_sha[:12] }}</span> on <strong>{{ run.branch }}</strong></div>
+    <div>Policy v{{ dec.policy_version if dec else '-' }} · {{ run.received_at|dt }} UTC</div>
+    {% if run.ci_run_url %}<div><a class="text-white" href="{{ run.ci_run_url }}" target="_blank" rel="noopener noreferrer">Open CI run</a></div>{% endif %}
+    <div class="mt-2"><a class="btn btn-sm btn-light" href="/runs/{{ run.id }}/evidence.json">Download evidence (JSON)</a></div>
+  </div>
+</div>
+<div class="row g-3">
+  <div class="col-lg-7">
+    <h2 class="h5">Why this decision</h2>
+    {% for r in (dec.reasons if dec else []) %}
+      <div class="reason reason-{{ r.type }}">
+        {% if r.type in ('blocking','warning','excepted') %}{{ m.sev(r.severity) }} <span class="mono">{{ r.rule }}</span> ·
+          <a href="/findings/{{ r.finding_id }}">{{ r.message.split('] ',1)[1] if '] ' in r.message else r.message }}</a>
+          <div class="muted small">{{ r.rule_description }} · risk {{ r.risk }}</div>
+        {% else %}{{ r.message }}{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="col-lg-5">
+    <h2 class="h5">Scanners</h2>
+    <div class="card mb-3"><table class="table table-sm mb-0"><thead><tr><th>Scanner</th><th>Status</th><th>Findings</th></tr></thead><tbody>
+      {% for rp in run.reports %}<tr><td>{{ rp.scanner }} <span class="muted small">{{ rp.version }}</span></td>
+        <td>{% if rp.status == 'ok' %}<span class="badge text-bg-success">ok</span>{% else %}<span class="badge text-bg-danger" title="{{ rp.message }}">error</span>{% endif %}</td>
+        <td>{{ rp.findings_count }}</td></tr>
+        {% if rp.message %}<tr><td colspan="3" class="small muted">{{ rp.message }}</td></tr>{% endif %}
+      {% else %}<tr><td colspan="3" class="muted">No report received.</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% if dec and dec.summary %}{% set s = dec.summary %}
+    <h2 class="h5">Summary</h2>
+    <div class="card"><div class="card-body small">
+      Total <strong>{{ s.total }}</strong> · new {{ s.new }} · persisting {{ s.persisting }} · reappeared {{ s.reappeared }} · resolved {{ s.resolved }} · excepted {{ s.excepted }}<br>
+      Highest risk score: <strong>{{ s.max_risk }}</strong>
+    </div></div>{% endif %}
+  </div>
+</div>
+<h2 class="h5 mt-4">Findings evaluated in this run ({{ rfs|length }})</h2>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0">
+  <thead><tr><th>Severity</th><th>Finding</th><th>Scanner</th><th>Location</th><th>Risk</th><th>Lifecycle</th><th>Rules</th></tr></thead><tbody>
+  {% for rf in rfs %}{% set f = rf.finding %}<tr>
+    <td>{{ m.sev(rf.severity) }}</td>
+    <td><a href="/findings/{{ f.id }}">{{ f.title }}</a>{% if rf.excepted %} <span class="badge text-bg-secondary">excepted</span>{% endif %}</td>
+    <td>{{ f.scanner }}</td><td class="mono">{{ f.location }}</td>
+    <td>{{ rf.risk_score }}</td><td>{{ rf.lifecycle }}</td><td class="mono">{{ rf.triggered_rules|join(', ') }}</td></tr>
+  {% else %}<tr><td colspan="7" class="text-center muted py-4">No finding.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

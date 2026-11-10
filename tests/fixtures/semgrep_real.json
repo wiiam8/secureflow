@@ -1,0 +1,138 @@
+{
+ "version": "1.184.0",
+ "results": [
+  {
+   "check_id": "demo.subprocess-shell-true",
+   "path": "app/main.py",
+   "start": {
+    "line": 30,
+    "col": 12,
+    "offset": 812
+   },
+   "end": {
+    "line": 30,
+    "col": 68,
+    "offset": 868
+   },
+   "extra": {
+    "message": "subprocess call with shell=True allows command injection",
+    "metadata": {
+     "cwe": [
+      "CWE-78: Improper Neutralization of Special Elements used in an OS Command"
+     ],
+     "confidence": "HIGH",
+     "references": [
+      "https://owasp.org/www-community/attacks/Command_Injection"
+     ]
+    },
+    "severity": "ERROR",
+    "fingerprint": "requires login",
+    "lines": "requires login",
+    "validation_state": "NO_VALIDATOR",
+    "engine_kind": "OSS"
+   }
+  },
+  {
+   "check_id": "demo.yaml-unsafe-load",
+   "path": "app/main.py",
+   "start": {
+    "line": 35,
+    "col": 16,
+    "offset": 957
+   },
+   "end": {
+    "line": 35,
+    "col": 59,
+    "offset": 1000
+   },
+   "extra": {
+    "message": "yaml.load without a safe loader can execute arbitrary code",
+    "metadata": {},
+    "severity": "WARNING",
+    "fingerprint": "requires login",
+    "lines": "requires login",
+    "validation_state": "NO_VALIDATOR",
+    "engine_kind": "OSS"
+   }
+  }
+ ],
+ "errors": [],
+ "paths": {
+  "scanned": [
+   "app/main.py",
+   "app/__init__.py"
+  ]
+ },
+ "time": {
+  "rules": [],
+  "rules_parse_time": 0.000247955322265625,
+  "profiling_times": {
+   "config_time": 0.11066889762878418,
+   "core_time": 0.25684475898742676,
+   "ignores_time": 7.677078247070312e-05,
+   "total_time": 0.3719007968902588
+  },
+  "parsing_time": {
+   "total_time": 0.015906095504760742,
+   "per_file_time": {
+    "mean": 0.007953047752380371,
+    "std_dev": 6.325096855164247e-05
+   },
+   "very_slow_stats": {
+    "time_ratio": 0.0,
+    "count_ratio": 0.0
+   },
+   "very_slow_files": []
+  },
+  "scanning_time": {
+   "total_time": 0.019176959991455078,
+   "per_file_time": {
+    "mean": 0.009588479995727539,
+    "std_dev": 8.921612612766694e-05
+   },
+   "very_slow_stats": {
+    "time_ratio": 0.0,
+    "count_ratio": 0.0
+   },
+   "very_slow_files": []
+  },
+  "matching_time": {
+   "total_time": 0.002576112747192383,
+   "per_file_and_rule_time": {
+    "mean": 0.0012880563735961914,
+    "std_dev": 1.5575091225628057e-06
+   },
+   "very_slow_stats": {
+    "time_ratio": 0.0,
+    "count_ratio": 0.0
+   },
+   "very_slow_rules_on_files": []
+  },
+  "tainting_time": {
+   "total_time": 0.0,
+   "per_def_and_rule_time": {
+    "mean": 0.0,
+    "std_dev": 0.0
+   },
+   "very_slow_stats": {
+    "time_ratio": 0.0,
+    "count_ratio": 0.0
+   },
+   "very_slow_rules_on_defs": []
+  },
+  "fixpoint_timeouts": [],
+  "prefiltering": {
+   "project_level_time": 0.0,
+   "file_level_time": 0.0,
+   "rules_with_project_prefilters_ratio": 0.0,
+   "rules_with_file_prefilters_ratio": 1.0,
+   "rules_selected_ratio": 0.5,
+   "rules_matched_ratio": 0.5
+  },
+  "targets": [],
+  "total_bytes": 0,
+  "max_memory_bytes": 93346048
+ },
+ "engine_requested": "OSS",
+ "skipped_rules": []
+}

@@ -25,6 +25,16 @@ CSP = (
     "form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
 )
 
+# Swagger UI (/docs) charge ses fichiers depuis un CDN et exécute un script inline :
+# il reçoit donc une CSP plus souple. Toutes les autres pages gardent la CSP stricte.
+DOCS_CSP = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+    "style-src 'self' https://cdn.jsdelivr.net; "
+    "img-src 'self' data: https://fastapi.tiangolo.com; "
+    "connect-src 'self'"
+)
+
 
 def bootstrap_admin() -> None:
     """Create the first administrator when the database has no user."""
@@ -82,7 +92,8 @@ app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     response = await call_next(request)
-    response.headers.setdefault("Content-Security-Policy", CSP)
+    csp = DOCS_CSP if request.url.path == "/docs" else CSP
+    response.headers.setdefault("Content-Security-Policy", csp)
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("Referrer-Policy", "same-origin")
     response.headers.setdefault("X-Frame-Options", "DENY")

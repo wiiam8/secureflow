@@ -38,16 +38,16 @@ jobs:
           pip install --quiet pip-audit
           pip-audit -r requirements.txt --no-deps --disable-pip -f json -o pip-audit.json || true
 
-      # Uncomment to enable the two extra scanners once the MVP chain works:
-      # - name: Semgrep (code)
-      #   run: |
-      #     pip install --quiet semgrep
-      #     semgrep scan --config p/python --json --output semgrep.json --metrics=off || true
-      # - name: Build image + Trivy (container)
-      #   run: |
-      #     docker build -t demo-app:ci .
-      #     docker run --rm -v "$PWD:/out" -v /var/run/docker.sock:/var/run/docker.sock \
-      #       aquasec/trivy:0.57.1 image --format json --output /out/trivy.json --scanners vuln demo-app:ci
+      - name: Semgrep (code)
+        run: |
+          pip install --quiet semgrep
+          semgrep scan --config p/python --json --output semgrep.json --metrics=off app || true
+
+      - name: Build image + Trivy (container)
+        run: |
+          docker build -t demo-app:ci .
+          docker run --rm -v "$PWD:/out" -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.57.1 image --format json --output /out/trivy.json --scanners vuln demo-app:ci
 
       - name: SecureFlow decision (fails the pipeline on BLOCK or integration error)
         env:
@@ -57,5 +57,6 @@ jobs:
           python scripts/secureflow_ci.py \
             --report bandit=bandit.json \
             --report gitleaks=gitleaks.json \
-            --report pip-audit=pip-audit.json
-          # add: --report semgrep=semgrep.json --report trivy=trivy.json
+            --report pip-audit=pip-audit.json \
+            --report semgrep=semgrep.json \
+            --report trivy=trivy.json
